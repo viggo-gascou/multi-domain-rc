@@ -58,7 +58,7 @@ def set_experiments(out_path, prediction=False):
                 exit(1)
 
     # setup logging
-    log_format = '%(message)s'
+    log_format = '%(asctime)s %(levelname)-8s %(message)s'
     log_level = logging.INFO
     if prediction:
         logging.basicConfig(filename=os.path.join(out_path, 'eval.log'), filemode='w', format=log_format, level=log_level)
