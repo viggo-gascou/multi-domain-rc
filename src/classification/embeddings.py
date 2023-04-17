@@ -33,7 +33,7 @@ class TransformerEmbeddings(Embeddings):
 
 		# add special tokens
 		ner_labels = os.getenv(f"ENTITY_LABELS").split()
-        domain_labels = os.getenv("DOMAINS").split()
+		domain_labels = os.getenv("DOMAINS").split()
 		self._tok.add_special_tokens({'additional_special_tokens': self.get_special_tokens(ner_labels, domain_labels)})
 		self._lm.resize_token_embeddings(len(self._tok))
 
@@ -50,9 +50,9 @@ class TransformerEmbeddings(Embeddings):
 			special_tokens.append(f'<E2:{label}>')
 			special_tokens.append(f'</E2:{label}>')
 
-        for domain in domain_labels:
-            special_tokens.append(domain)
-            
+		for domain in domain_labels:
+			special_tokens.append(domain)
+
 		return special_tokens
 
 	def embed(self, sentences):

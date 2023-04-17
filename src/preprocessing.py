@@ -1,4 +1,5 @@
 import json
+import os
 from dotenv import load_dotenv
 from torch.utils.data import Dataset, DataLoader
 from itertools import permutations
@@ -20,15 +21,21 @@ class DatasetMapper(Dataset):
         return self.sentences[idx], self.entities_1[idx], self.entities_2[idx], self.relations[idx]
 
 
-def prepare_data(data_path, labels2id, batch_size):
-
-    sentences, entities_1, entities_2, relations = read_json_file(data_path, labels2id)
+def prepare_data(data_path, labels2id, batch_size, domain=None, train=True, experiment_type='baseline'):
+    if domain == 'all':
+        sentences, entities_1, entities_2, relations = [], [], [], []
+        for domain in os.getenv('DOMAINS').split():
+            file_contents = read_json_file(f'{data_path}/{domain}-{"train" if train else "dev"}.json', labels2id, domain=domain, experiment_type=experiment_type)
+            for fc, l in zip(file_contents, (sentences, entities_1, entities_2, relations)):
+                l.extend(fc)
+    else:
+        sentences, entities_1, entities_2, relations = read_json_file(data_path, labels2id, domain=domain, experiment_type=experiment_type)
     data_loader = DataLoader(DatasetMapper(sentences, entities_1, entities_2, relations), batch_size=batch_size)
     return data_loader
 
 
 # return sentences, idx within the sentence of entity-markers-start, relation labels
-def read_json_file(json_file, labels2id, multi_label=False):
+def read_json_file(json_file, labels2id, domain=None, multi_label=False, experiment_type='baseline'):
 
     sentences, entities_1, entities_2, relations = [], [], [], []
 
@@ -108,6 +115,9 @@ def read_json_file(json_file, labels2id, multi_label=False):
                         # regular token
                         else:
                             sentence_marked += f'{document["sentence"][idx_token]} '
+                    
+                    if domain is not None and experiment_type == 'special_token':
+                        sentence_marked = f'[{domain.upper()}] ' + sentence_marked
 
                     # retrieve relation label
                     dataset_relations = [(e1_s, e1_e, e2_s, e2_e, rel, exp, ns, sa) for (e1_s, e1_e, e2_s, e2_e, rel, exp, ns, sa) in document["relations"] if e1_s == entity_pair[0][0] and e1_e == entity_pair[0][1] and e2_s == entity_pair[1][0] and e2_e == entity_pair[1][1]]

@@ -17,10 +17,12 @@ load_dotenv()
 def parse_arguments():
 
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument('--train_path', help='Path to training data')
-    arg_parser.add_argument('--dev_path', help='Path to the dev data')
-    arg_parser.add_argument('--test_path', help='Path to the test data')
+    arg_parser.add_argument('--data_path', help='Path to the data directory')
+    arg_parser.add_argument('--test_path', help='Path to the test data file')
     arg_parser.add_argument('--exp_path', help='Path to the experiment directory')
+
+    arg_parser.add_argument('--test_domain', help='Domain to test on')
+    arg_parser.add_argument('--experiment_type', help="Experiment type to run")
 
     arg_parser.add_argument('-lm', '--language_model', type=str, default='bert-base-cased')
     arg_parser.add_argument('-po', '--prediction_only', action='store_true', default=False, help='Set flag to run prediction on the validation data and exit (default: False)')
@@ -199,12 +201,12 @@ if __name__ == '__main__':
 
     # setup data
     if args.prediction_only:
-        test_data = prepare_data(args.test_path, label_types, args.batch_size)
+        test_data = prepare_data(args.test_path, label_types, args.batch_size, domain=args.test_domain)
         logging.info(f"Loaded {test_data} (test).")
     else:
-        train_data = prepare_data(args.train_path, label_types, args.batch_size)
+        train_data = prepare_data(args.data_path, label_types, args.batch_size, domain='all', train=True, experiment_type=args.experiment_type)
         logging.info(f"Loaded {train_data} (train).")
-        dev_data = prepare_data(args.dev_path, label_types, args.batch_size)
+        dev_data = prepare_data(args.data_path, label_types, args.batch_size, domain='all', train=False, experiment_type=args.experiment_type)
         logging.info(f"Loaded {dev_data} (dev).")
 
     # load embedding model
