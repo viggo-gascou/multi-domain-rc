@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 from src.preprocessing import prepare_data
 from src.classification import load_classifier
 from src.classification.embeddings import TransformerEmbeddings
-from src.types import Experiment
+from src.rc_types import Experiment
 
 load_dotenv()
 

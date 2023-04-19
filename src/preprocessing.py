@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from torch.utils.data import Dataset, DataLoader
 from itertools import permutations
 
-from types import Experiment
+from .rc_types import Experiment
 
 load_dotenv()
 
