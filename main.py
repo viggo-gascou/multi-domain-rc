@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 from src.preprocessing import prepare_data
 from src.classification import load_classifier
 from src.classification.embeddings import TransformerEmbeddings
+from src.types import Experiment
 
 load_dotenv()
 
@@ -191,6 +192,7 @@ if __name__ == '__main__':
 
     args = parse_arguments()
     set_experiments(args.exp_path, prediction=args.prediction_only)
+    experiment_type = Experiment(args.experiment_type)
 
     # set random seeds
     np.random.seed(args.seed)
@@ -204,9 +206,9 @@ if __name__ == '__main__':
         test_data = prepare_data(args.test_path, label_types, args.batch_size, domain=args.test_domain)
         logging.info(f"Loaded {test_data} (test).")
     else:
-        train_data = prepare_data(args.data_path, label_types, args.batch_size, domain='all', train=True, experiment_type=args.experiment_type)
+        train_data = prepare_data(args.data_path, label_types, args.batch_size, domain='all', train=True, experiment_type=experiment_type)
         logging.info(f"Loaded {train_data} (train).")
-        dev_data = prepare_data(args.data_path, label_types, args.batch_size, domain='all', train=False, experiment_type=args.experiment_type)
+        dev_data = prepare_data(args.data_path, label_types, args.batch_size, domain='all', train=False, experiment_type=experiment_type)
         logging.info(f"Loaded {dev_data} (dev).")
 
     # load embedding model

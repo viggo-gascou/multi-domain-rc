@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 from torch.utils.data import Dataset, DataLoader
 from itertools import permutations
 
+from types import Experiment
+
 load_dotenv()
 
 class DatasetMapper(Dataset):
@@ -35,7 +37,7 @@ def prepare_data(data_path, labels2id, batch_size, domain=None, train=True, expe
 
 
 # return sentences, idx within the sentence of entity-markers-start, relation labels
-def read_json_file(json_file, labels2id, domain=None, multi_label=False, experiment_type='baseline'):
+def read_json_file(json_file, labels2id, domain=None, multi_label=False, experiment_type=Experiment.baseline):
 
     sentences, entities_1, entities_2, relations = [], [], [], []
 
@@ -52,10 +54,16 @@ def read_json_file(json_file, labels2id, domain=None, multi_label=False, experim
                 for entity_pair in entity_pairs:
 
                     # set the entity tokens to inject in the instance
-                    ent1_start = f'<E1:{entity_pair[0][2]}>'
-                    ent1_end = f'</E1:{entity_pair[0][2]}>'
-                    ent2_start = f'<E2:{entity_pair[1][2]}>'
-                    ent2_end = f'</E2:{entity_pair[1][2]}>'
+                    if experiment_type == Experiment.baseline:
+                        ent1_start = f'<E1:{entity_pair[0][2]}>'
+                        ent1_end = f'</E1:{entity_pair[0][2]}>'
+                        ent2_start = f'<E2:{entity_pair[1][2]}>'
+                        ent2_end = f'</E2:{entity_pair[1][2]}>'
+                    else:
+                        ent1_start = '<E1>'
+                        ent1_end = '</E1>'
+                        ent2_start = '<E2>'
+                        ent2_end = '</E2>'
 
                     # build the instance sentence for the model
                     sentence_marked = ''
@@ -116,7 +124,7 @@ def read_json_file(json_file, labels2id, domain=None, multi_label=False, experim
                         else:
                             sentence_marked += f'{document["sentence"][idx_token]} '
                     
-                    if domain is not None and experiment_type == 'special_token':
+                    if domain is not None and experiment_type == Experiment.special_token:
                         sentence_marked = f'[{domain.upper()}] ' + sentence_marked
 
                     # retrieve relation label
