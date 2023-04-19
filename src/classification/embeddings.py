@@ -49,6 +49,7 @@ class TransformerEmbeddings(Embeddings):
 			special_tokens.append(f'</E1:{label}>')
 			special_tokens.append(f'<E2:{label}>')
 			special_tokens.append(f'</E2:{label}>')
+			special_tokens.extend(['<E1>', '</E1>', '<E2>', '</E2>'])
 
 		for domain in domain_labels:
 			special_tokens.append(f'[{domain.upper()}]')
