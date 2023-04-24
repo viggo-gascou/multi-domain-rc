@@ -10,7 +10,6 @@ load_dotenv()
 # Embeddings Base Class
 #
 
-
 class Embeddings(nn.Module):
 	def __init__(self):
 		super().__init__()
