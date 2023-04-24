@@ -3,5 +3,4 @@ from .losses import *
 
 
 def load_classifier():
-	return LinearClassifier, LabelLoss
-
+    return LinearClassifier, LabelLoss
