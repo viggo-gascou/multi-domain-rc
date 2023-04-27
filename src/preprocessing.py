@@ -10,11 +10,12 @@ load_dotenv()
 
 
 class DatasetMapper(Dataset):
-    def __init__(self, sentences, entities_1, entities_2, relations):
+    def __init__(self, sentences, entities_1, entities_2, relations, domains):
         self.sentences = sentences
         self.entities_1 = entities_1
         self.entities_2 = entities_2
         self.relations = relations
+        self.domains = domains
 
     def __len__(self):
         return len(self.sentences)
@@ -25,6 +26,7 @@ class DatasetMapper(Dataset):
             self.entities_1[idx],
             self.entities_2[idx],
             self.relations[idx],
+            self.domains[idx],
         )
 
 
@@ -37,7 +39,7 @@ def prepare_data(
     experiment_type="baseline",
 ):
     if domain == "all":
-        sentences, entities_1, entities_2, relations = [], [], [], []
+        sentences, entities_1, entities_2, relations, domains = [], [], [], [], []
         for domain in os.getenv("DOMAINS").split():
             file_contents = read_json_file(
                 f'{data_path}/{domain}-{"train" if train else "dev"}.json',
@@ -46,15 +48,15 @@ def prepare_data(
                 experiment_type=experiment_type,
             )
             for fc, l in zip(
-                file_contents, (sentences, entities_1, entities_2, relations)
+                file_contents, (sentences, entities_1, entities_2, relations, domains)
             ):
                 l.extend(fc)
     else:
-        sentences, entities_1, entities_2, relations = read_json_file(
+        sentences, entities_1, entities_2, relations, domains = read_json_file(
             data_path, labels2id, domain=domain, experiment_type=experiment_type
         )
     data_loader = DataLoader(
-        DatasetMapper(sentences, entities_1, entities_2, relations),
+        DatasetMapper(sentences, entities_1, entities_2, relations, domains),
         batch_size=batch_size,
     )
     return data_loader
@@ -68,7 +70,7 @@ def read_json_file(
     multi_label=False,
     experiment_type=Experiment.baseline,
 ):
-    sentences, entities_1, entities_2, relations = [], [], [], []
+    sentences, entities_1, entities_2, relations, domains = [], [], [], [], []
 
     with open(json_file) as data_file:
         for json_elem in data_file:
@@ -198,5 +200,6 @@ def read_json_file(
                         entities_2.append(
                             sentence_marked.split(" ").index(f"{ent2_start}")
                         )
+                        domains.append(domain)
 
-    return sentences, entities_1, entities_2, relations
+    return sentences, entities_1, entities_2, relations, domains

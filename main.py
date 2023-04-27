@@ -128,7 +128,7 @@ def run(
 
     # iterate over batches
     batch_idx = 0
-    for sentences, entities_1, entities_2, labels in dataset:
+    for sentences, entities_1, entities_2, labels, domains in dataset:
         batch_idx += 1
 
         # when training, perform both forward and backward pass
@@ -137,7 +137,7 @@ def run(
             optimizer.zero_grad()
 
             # forward pass
-            predictions = classifier(list(sentences), entities_1, entities_2)
+            predictions = classifier(list(sentences), entities_1, entities_2, domains)
 
             # compute loss
             loss = criterion(predictions["flat_logits"], labels)
@@ -150,7 +150,7 @@ def run(
         elif mode == "eval":
             with torch.no_grad():
                 # forward pass
-                predictions = classifier(list(sentences), entities_1, entities_2)
+                predictions = classifier(list(sentences), entities_1, entities_2, domains)
                 loss = criterion(predictions["flat_logits"], labels)
 
         # calculate and store accuracy metrics
@@ -272,7 +272,7 @@ if __name__ == "__main__":
         logging.info(f"Loaded {dev_data} (dev).")
 
     # load embedding model
-    embedding_model = TransformerEmbeddings(args.language_model)
+    embedding_model = TransformerEmbeddings(args.language_model, experiment_type)
     logging.info(f"Loaded {embedding_model}.")
 
     # load classifier and loss constructors based on identifier

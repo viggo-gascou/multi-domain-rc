@@ -36,9 +36,9 @@ class EmbeddingClassifier(nn.Module):
     def load(path):
         return torch.load(path)
 
-    def forward(self, sentences, entities_1, entities_2):
+    def forward(self, sentences, entities_1, entities_2, domains):
         # embed sentences (batch_size, seq_length) -> (batch_size, max_length, emb_dim)
-        emb_tokens, att_tokens, encodings = self._emb(sentences)
+        emb_tokens, att_tokens, encodings = self._emb(sentences, domains)
 
         # prepare sentence embedding tensor (batch_size, emb_dim)
         emb_sentences = torch.zeros(

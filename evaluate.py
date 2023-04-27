@@ -54,7 +54,7 @@ def get_metrics(gold_path, predicted_path):
         label: idx for idx, label in enumerate(os.getenv(f"RELATION_LABELS").split())
     }
 
-    _, _, _, gold_relations = read_json_file(gold_path, label_types, multi_label=True)
+    _, _, _, gold_relations, _ = read_json_file(gold_path, label_types, multi_label=True)
 
     # get the predicted labels
     predicted = []
