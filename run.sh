@@ -1,14 +1,35 @@
 #!/bin/bash
 
-DATA_PATH=crossre_data
-EXP_PATH=experiments
-
 # domains: news politics science music literature ai
 DOMAINS=( news politics science music literature ai )
 LM='bert-base-cased'
 SEEDS=( 4012 5096 8878 8857 9908 )
+
+
 # Possible experiments: special-token, dataset-embeddings, baseline
-EXPERIMENT='dataset-embeddings'
+print_help() {
+    echo "Usage: ./run.sh {Arguments}"
+    echo "Arguments:"
+    echo "  -e <path>   Path to the experiments folder. Default: experiments"
+    echo "  -d <path>   Path to the data folder. Default: crossre_data"
+    echo "  -t <type>   Type of experiment. Default: baseline (options: special-token, dataset-embeddings, baseline)"
+    exit 1
+}
+
+while getopts "e:t:d:h" opt
+do
+   case "$opt" in
+      e ) EXP_PATH="$OPTARG" ;;
+      d ) DATA_PATH="$OPTARG" ;;
+      t ) TYPE="$OPTARG" ;;
+      h ) print_help ;;
+      ? ) print_help ;; # Print helpFunction in case parameter is non-existent
+   esac
+done
+
+if [ -z "$DATA_PATH" ]; then DATA_PATH="crossre_data"; fi
+if [ -z "$EXPERIMENT" ]; then EXPERIMENT="baseline"; fi
+if [ -z "$EXP_PATH" ]; then EXP_PATH="experiments"; fi
 
 
 #iterate over seeds
