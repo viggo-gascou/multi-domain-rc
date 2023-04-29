@@ -7,6 +7,7 @@ SEEDS=( 4012 5096 8878 8857 9908 )
 
 
 # Possible experiments: special-token, dataset-embeddings, baseline
+
 print_help() {
     echo "Usage: ./run.sh {Arguments}"
     echo "Arguments:"
@@ -21,7 +22,7 @@ do
    case "$opt" in
       e ) EXP_PATH="$OPTARG" ;;
       d ) DATA_PATH="$OPTARG" ;;
-      t ) TYPE="$OPTARG" ;;
+      t ) EXPERIMENT="$OPTARG" ;;
       h ) print_help ;;
       ? ) print_help ;; # Print helpFunction in case parameter is non-existent
    esac
@@ -30,6 +31,12 @@ done
 if [ -z "$DATA_PATH" ]; then DATA_PATH="crossre_data"; fi
 if [ -z "$EXPERIMENT" ]; then EXPERIMENT="baseline"; fi
 if [ -z "$EXP_PATH" ]; then EXP_PATH="experiments"; fi
+
+# check that experiment type is valid
+if [[ ! "special-token dataset-embeddings baseline" =~ $EXPERIMENT ]]; then
+    echo "[Error] Experiment type '$EXPERIMENT' is not valid. Choose from: special-token, dataset-embeddings, baseline"
+    exit 1
+fi
 
 
 #iterate over seeds
