@@ -195,7 +195,7 @@ def save_predictions(path, data, pred_labels):
         csv_writer.writerow(
             ["labels", "position-ent1-marker", "position-ent2-marker", "text"]
         )
-        for sentences, entities1, entities2, _ in data:
+        for sentences, entities1, entities2, _, _ in data:
             for s, e1, e2 in zip(sentences, entities1, entities2):
                 csv_writer.writerow([pred_labels[idx], e1.item(), e2.item(), s])
 

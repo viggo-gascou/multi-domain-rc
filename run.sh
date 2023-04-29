@@ -48,6 +48,7 @@ for rs in "${!SEEDS[@]}"; do
         python3 main.py \
                 --data_path $DATA_PATH \
                 --test_path $DATA_PATH/${DOMAIN}-test.json \
+                --test_domain ${DOMAIN} \
                 --experiment_type $EXPERIMENT \
                 --exp_path ${exp_dir} \
                 --language_model ${LM} \

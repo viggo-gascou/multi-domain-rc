@@ -31,7 +31,9 @@ class TransformerEmbeddings(Embeddings):
         )
         self._lm = transformers.AutoModel.from_pretrained(lm_name, return_dict=True)
         config = self._lm.config
-        self.dataset_embeddings = nn.Embedding(config.vocab_size, config.hidden_size, padding_idx=config.pad_token_id)
+        self.dataset_embeddings = nn.Embedding(
+            config.vocab_size, config.hidden_size, padding_idx=config.pad_token_id
+        )
 
         # move model to GPU if available
         if torch.cuda.is_available():
@@ -83,10 +85,11 @@ class TransformerEmbeddings(Embeddings):
             for k in ["input_ids", "token_type_ids", "attention_mask"]
             if k in tok_sentences
         }
-        
+
         if self.experiment_type == Experiment.dataset_embeddings:
-            max_len = model_inputs["input_ids"].shape[1]
-            data_ids = self.compute_data_ids(sentences, model_inputs["input_ids"], domains)
+            data_ids = self.compute_data_ids(
+                sentences, model_inputs["input_ids"], domains
+            )
             word_embeds = self._lm.embeddings.word_embeddings(model_inputs["input_ids"])
             dataset_embeds = self.dataset_embeddings(data_ids).to(self._lm.device)
             model_inputs["inputs_embeds"] = word_embeds + dataset_embeds
@@ -140,7 +143,7 @@ class TransformerEmbeddings(Embeddings):
                 else:
                     offsets.append(None)
             offsets = [x if x is not None else (-1, -1) for x in offsets]
-            
+
             # Truncate/pad offsets
             offsets = offsets[:max_len]
             pad_length = max_len - len(offsets)
@@ -152,7 +155,10 @@ class TransformerEmbeddings(Embeddings):
 
     def compute_dataset_ids(self, sentences, domains):
         dataset_to_id = {k: i for i, k in enumerate(os.getenv("DOMAINS").split())}
-        dataset_ids_list = [[dataset_to_id[domain] for _ in sentence.split(" ")] for sentence, domain in zip(sentences, domains)]
+        dataset_ids_list = [
+            [dataset_to_id[domain] for _ in sentence.split(" ")]
+            for sentence, domain in zip(sentences, domains)
+        ]
         max_len = len(max(dataset_ids_list, key=len))
         for i, dataset_ids in enumerate(dataset_ids_list):
             dataset_ids_list[i] = dataset_ids[:max_len]
@@ -160,29 +166,35 @@ class TransformerEmbeddings(Embeddings):
             values_to_pad = [0] * pad_length
             dataset_ids_list[i] = dataset_ids_list[i] + values_to_pad
         return torch.Tensor(dataset_ids_list)
-    
+
     def compute_data_ids(self, sentences, input_ids, domains):
         offsets = self.compute_offsets(sentences, input_ids.shape[1])
-        print(offsets.shape)
         wordpiece_sizes = []
         for sent_idx in range(len(offsets)):
             wordpiece_sizes.append([])
             for word_idx in range(len(offsets[sent_idx])):
                 if offsets[sent_idx][word_idx][0] == 0:
                     continue
-                wordpiece_sizes[-1].append(int(offsets[sent_idx][word_idx][1] - offsets[sent_idx][word_idx][0] + 1))
+                wordpiece_sizes[-1].append(
+                    int(
+                        offsets[sent_idx][word_idx][1]
+                        - offsets[sent_idx][word_idx][0]
+                        + 1
+                    )
+                )
         dataset_ids = self.compute_dataset_ids(sentences, domains)
         data_ids = torch.zeros_like(input_ids)
         for sent_idx in range(len(wordpiece_sizes)):
             piece_idx = 0
-            for word_idx in range(min(len(wordpiece_sizes[sent_idx]), len(dataset_ids[sent_idx]))):
+            for word_idx in range(
+                min(len(wordpiece_sizes[sent_idx]), len(dataset_ids[sent_idx]))
+            ):
                 for _ in range(wordpiece_sizes[sent_idx][word_idx]):
                     if piece_idx >= len(data_ids[sent_idx]):
                         continue
                     data_ids[sent_idx][piece_idx] = dataset_ids[sent_idx][word_idx]
                     piece_idx += 1
         return data_ids
-
 
 
 #
