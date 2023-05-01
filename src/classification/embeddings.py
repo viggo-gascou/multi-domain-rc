@@ -11,7 +11,6 @@ load_dotenv()
 # Embeddings Base Class
 #
 
-
 class Embeddings(nn.Module):
     def __init__(self):
         super().__init__()
@@ -62,9 +61,9 @@ class TransformerEmbeddings(Embeddings):
             special_tokens.append(f"</E1:{label}>")
             special_tokens.append(f"<E2:{label}>")
             special_tokens.append(f"</E2:{label}>")
-            special_tokens.extend(["<E1>", "</E1>", "<E2>", "</E2>"])
 
         if self.experiment_type == Experiment.special_token:
+            special_tokens.extend(["<E1>", "</E1>", "<E2>", "</E2>"])
             for domain in domain_labels:
                 special_tokens.append(f"[{domain.upper()}]")
 
@@ -87,9 +86,18 @@ class TransformerEmbeddings(Embeddings):
         }
 
         if self.experiment_type == Experiment.dataset_embeddings:
-            data_ids = self.compute_data_ids(
+            dataset_to_id = {k: i for i, k in enumerate(os.getenv("DOMAINS").split())}
+            data_ids = torch.zeros_like(model_inputs["input_ids"])
+            data_ids[:] = torch.tensor([dataset_to_id[domain] for domain in domains]).reshape(-1, 1)
+            data_ids = data_ids.to(self._lm.device)
+
+            data_ids_old = self.compute_data_ids(
                 sentences, model_inputs["input_ids"], domains
             )
+            print(data_ids)
+            print(data_ids_old)
+            exit(1)
+
             word_embeds = self._lm.embeddings.word_embeddings(model_inputs["input_ids"])
             dataset_embeds = self.dataset_embeddings(data_ids).to(self._lm.device)
             model_inputs["inputs_embeds"] = word_embeds + dataset_embeds
@@ -154,7 +162,7 @@ class TransformerEmbeddings(Embeddings):
         return torch.Tensor(offsets_list)
 
     def compute_dataset_ids(self, sentences, domains):
-        dataset_to_id = {k: i for i, k in enumerate(os.getenv("DOMAINS").split())}
+
         dataset_ids_list = [
             [dataset_to_id[domain] for _ in sentence.split(" ")]
             for sentence, domain in zip(sentences, domains)
