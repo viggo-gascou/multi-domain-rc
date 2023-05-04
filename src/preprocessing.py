@@ -1,10 +1,12 @@
 import json
 import os
-from dotenv import load_dotenv
-from torch.utils.data import Dataset, DataLoader
 from itertools import permutations
 
-from .rc_types import Experiment
+from dotenv import load_dotenv
+from torch.utils.data import DataLoader, Dataset
+
+from .helpers import entity_to_generic
+from .rc_types import Experiment, Markers
 
 load_dotenv()
 
@@ -36,7 +38,8 @@ def prepare_data(
     batch_size,
     domain=None,
     train=True,
-    experiment_type="baseline",
+    experiment_type=Experiment.baseline,
+    entity_markers=Markers.all,
 ):
     if domain == "all":
         sentences, entities_1, entities_2, relations, domains = [], [], [], [], []
@@ -46,6 +49,7 @@ def prepare_data(
                 labels2id,
                 domain=domain,
                 experiment_type=experiment_type,
+                entity_markers=entity_markers,
             )
             for fc, l in zip(
                 file_contents, (sentences, entities_1, entities_2, relations, domains)
@@ -53,13 +57,16 @@ def prepare_data(
                 l.extend(fc)
     else:
         sentences, entities_1, entities_2, relations, domains = read_json_file(
-            data_path, labels2id, domain=domain, experiment_type=experiment_type
+            data_path,
+            labels2id,
+            domain=domain,
+            experiment_type=experiment_type,
+            entity_markers=entity_markers,
         )
-    data_loader = DataLoader(
+    return DataLoader(
         DatasetMapper(sentences, entities_1, entities_2, relations, domains),
         batch_size=batch_size,
     )
-    return data_loader
 
 
 # return sentences, idx within the sentence of entity-markers-start, relation labels
@@ -69,6 +76,7 @@ def read_json_file(
     domain=None,
     multi_label=False,
     experiment_type=Experiment.baseline,
+    entity_markers=Markers.all,
 ):
     sentences, entities_1, entities_2, relations, domains = [], [], [], [], []
 
@@ -83,12 +91,17 @@ def read_json_file(
 
                 for entity_pair in entity_pairs:
                     # set the entity tokens to inject in the instance
-                    if experiment_type == Experiment.baseline:
+                    if entity_markers == Markers.all:
                         ent1_start = f"<E1:{entity_pair[0][2]}>"
                         ent1_end = f"</E1:{entity_pair[0][2]}>"
                         ent2_start = f"<E2:{entity_pair[1][2]}>"
                         ent2_end = f"</E2:{entity_pair[1][2]}>"
-                    else:
+                    elif entity_markers == Markers.generic:
+                        ent1_start = f"<E1:{entity_to_generic[entity_pair[0][2]]}>"
+                        ent1_end = f"</E1:{entity_to_generic[entity_pair[0][2]]}>"
+                        ent2_start = f"<E2:{entity_to_generic[entity_pair[1][2]]}>"
+                        ent2_end = f"</E2:{entity_to_generic[entity_pair[1][2]]}>"
+                    elif entity_markers == Markers.none:
                         ent1_start = "<E1>"
                         ent1_end = "</E1>"
                         ent2_start = "<E2>"

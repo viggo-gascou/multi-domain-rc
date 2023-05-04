@@ -14,15 +14,17 @@ print_help() {
     echo "  -e <path>   Path to the experiments folder. Default: experiments"
     echo "  -d <path>   Path to the data folder. Default: crossre_data"
     echo "  -t <type>   Type of experiment. Default: baseline (options: special-token, dataset-embeddings, baseline)"
+    echo "  -m <type>   Type of entity markers. Default: all (options: all, generic, none)"
     exit 1
 }
 
-while getopts "e:t:d:h" opt
+while getopts "e:t:d:m:h" opt
 do
    case "$opt" in
       e ) EXP_PATH="$OPTARG" ;;
       d ) DATA_PATH="$OPTARG" ;;
       t ) EXPERIMENT="$OPTARG" ;;
+      m ) ENTITY_MARKERS="$OPTARG" ;;
       h ) print_help ;;
       ? ) print_help ;; # Print helpFunction in case parameter is non-existent
    esac
@@ -31,10 +33,17 @@ done
 if [ -z "$DATA_PATH" ]; then DATA_PATH="crossre_data"; fi
 if [ -z "$EXPERIMENT" ]; then EXPERIMENT="baseline"; fi
 if [ -z "$EXP_PATH" ]; then EXP_PATH="experiments"; fi
+if [ -z "$ENTITY_MARKERS" ]; then ENTITY_MARKERS="all"; fi
 
 # check that experiment type is valid
 if [[ ! "special-token dataset-embeddings baseline" =~ $EXPERIMENT ]]; then
     echo "[Error] Experiment type '$EXPERIMENT' is not valid. Choose from: special-token, dataset-embeddings, baseline"
+    exit 1
+fi
+
+# check that entity markers is valid
+if [[ ! "all generic none" =~ $ENTITY_MARKERS ]]; then
+    echo "[Error] Entity marker type '$ENTITY_MARKERS' is not valid. Choose from: all, generic, none"
     exit 1
 fi
 
@@ -56,6 +65,7 @@ for rs in "${!SEEDS[@]}"; do
             --data_path $DATA_PATH \
             --exp_path ${exp_dir} \
             --experiment_type $EXPERIMENT \
+            --entity_markers $ENTITY_MARKERS \
             --language_model ${LM} \
             --seed ${SEEDS[$rs]}
 
@@ -78,6 +88,7 @@ for rs in "${!SEEDS[@]}"; do
                 --test_path $DATA_PATH/${DOMAIN}-test.json \
                 --test_domain ${DOMAIN} \
                 --experiment_type $EXPERIMENT \
+                --entity_markers $ENTITY_MARKERS \
                 --exp_path ${exp_dir} \
                 --language_model ${LM} \
                 --seed ${SEEDS[$rs]} \

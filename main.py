@@ -1,17 +1,19 @@
+import argparse
+import csv
+import logging
 import os
 import sys
-import csv
-import argparse
-import logging
-import torch
-import numpy as np
 from collections import defaultdict
-from dotenv import load_dotenv
+
 import matplotlib.pyplot as plt
-from src.preprocessing import prepare_data
+import numpy as np
+import torch
+from dotenv import load_dotenv
+
 from src.classification import load_classifier
 from src.classification.embeddings import TransformerEmbeddings
-from src.rc_types import Experiment
+from src.preprocessing import prepare_data
+from src.rc_types import Experiment, Markers
 
 load_dotenv()
 
@@ -24,6 +26,7 @@ def parse_arguments():
 
     arg_parser.add_argument("--test_domain", help="Domain to test on")
     arg_parser.add_argument("--experiment_type", help="Experiment type to run")
+    arg_parser.add_argument("--entity_markers", help="Type of entity markers")
 
     arg_parser.add_argument(
         "-lm", "--language_model", type=str, default="bert-base-cased"
@@ -150,7 +153,9 @@ def run(
         elif mode == "eval":
             with torch.no_grad():
                 # forward pass
-                predictions = classifier(list(sentences), entities_1, entities_2, domains)
+                predictions = classifier(
+                    list(sentences), entities_1, entities_2, domains
+                )
                 loss = criterion(predictions["flat_logits"], labels)
 
         # calculate and store accuracy metrics
@@ -235,6 +240,7 @@ if __name__ == "__main__":
     args = parse_arguments()
     set_experiments(args.exp_path, prediction=args.prediction_only)
     experiment_type = Experiment(args.experiment_type)
+    entity_markers = Markers(args.entity_markers)
 
     # set random seeds
     np.random.seed(args.seed)
@@ -248,7 +254,11 @@ if __name__ == "__main__":
     # setup data
     if args.prediction_only:
         test_data = prepare_data(
-            args.test_path, label_types, args.batch_size, domain=args.test_domain
+            args.test_path,
+            label_types,
+            args.batch_size,
+            domain=args.test_domain,
+            entity_markers=entity_markers,
         )
         logging.info(f"Loaded {test_data} (test).")
     else:
@@ -259,6 +269,7 @@ if __name__ == "__main__":
             domain="all",
             train=True,
             experiment_type=experiment_type,
+            entity_markers=entity_markers,
         )
         logging.info(f"Loaded {train_data} (train).")
         dev_data = prepare_data(
@@ -268,6 +279,7 @@ if __name__ == "__main__":
             domain="all",
             train=False,
             experiment_type=experiment_type,
+            entity_markers=entity_markers,
         )
         logging.info(f"Loaded {dev_data} (dev).")
 
