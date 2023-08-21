@@ -189,7 +189,7 @@ def read_json_file(
                     # retrieve relation label
                     dataset_relations = [
                         (e1_s, e1_e, e2_s, e2_e, rel, exp, ns, sa)
-                        for (e1_s, e1_e, e2_s, e2_e, rel, exp, ns, sa) in document[
+                        for (e1_s, e1_e, e2_s, e2_e, rel, exp, ns, sa, *_) in document[
                             "relations"
                         ]
                         if e1_s == entity_pair[0][0]
