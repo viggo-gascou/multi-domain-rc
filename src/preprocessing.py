@@ -66,6 +66,7 @@ def prepare_data(
     return DataLoader(
         DatasetMapper(sentences, entities_1, entities_2, relations, domains),
         batch_size=batch_size,
+        shuffle=True,
     )
 
 

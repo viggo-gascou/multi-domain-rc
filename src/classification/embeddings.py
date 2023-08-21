@@ -1,9 +1,11 @@
 import os
+
 import torch
 import torch.nn as nn
 import transformers
-from ..rc_types import Experiment
 from dotenv import load_dotenv
+
+from ..rc_types import Experiment
 
 load_dotenv()
 
@@ -32,8 +34,16 @@ class TransformerEmbeddings(Embeddings):
         self._lm = transformers.AutoModel.from_pretrained(lm_name, return_dict=True)
         config = self._lm.config
         if self.experiment_type == Experiment.dataset_embeddings:
+            init_weights = torch.empty(
+                len(os.getenv("DOMAINS").split()),
+                config.hidden_size,
+            )
+            init_weights = torch.nn.init.xavier_uniform_(init_weights)
             self.dataset_embeddings = nn.Embedding(
-                config.vocab_size, config.hidden_size, padding_idx=config.pad_token_id
+                len(os.getenv("DOMAINS").split()),
+                config.hidden_size,
+                padding_idx=config.pad_token_id,
+                _weight=init_weights,
             )
 
         # move model to GPU if available
