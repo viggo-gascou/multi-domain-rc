@@ -257,6 +257,7 @@ if __name__ == "__main__":
             args.test_path,
             label_types,
             args.batch_size,
+            train=False,
             domain=args.test_domain,
             entity_markers=entity_markers,
         )
