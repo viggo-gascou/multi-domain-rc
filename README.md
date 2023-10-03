@@ -1,4 +1,4 @@
-# second-year-project
+# multi-domain-rc
 
 ## Setup
 Install all the needed package dependencies using the command:
