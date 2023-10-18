@@ -4,7 +4,7 @@ import matplotlib as mpl
 import matplotlib.patches as mpatches
 mpl.use('Agg')
 import matplotlib.pyplot as plt
-plt.style.use('rob.mplstyle')
+plt.style.use('style.mplstyle')
 
 import torch
 from transformers import AutoModel
